@@ -72,10 +72,98 @@ function puzzle1_solution(input: number[][]): number {
  * @returns number
  */
 function puzzle2_solution(input: number[][]) {
+  const safe_reports: number[][] = [];
   // Same as solution 1, except
   // we should pop off the first instance of an unsafe number
   // and try the new array again through the algorithm
   // if it then fails again, it's unsafe
+
+  function check_report(_report: number[]) {
+    // check to see if it's increasing or decreasing
+    const increasing = _report[0] < _report[1];
+    const decreasing = _report[0] > _report[1];
+
+    // if it's equal, it's unsafe and it won't get counted as safe
+
+    // if it's increasing or decreasing, now check whether it is safe
+    return _report.reduce(
+      (result: boolean, _level: number, _index: number, _array: number[]) => {
+        // If it's already unsafe, bail out, it's unsafe
+        if (!result) return result;
+
+        // If this is the last number, bail out,
+        // we have already checked what we need to check
+        if (!_array[_index + 1]) return result;
+
+        // cache the next number in the array
+        const _next_level = _array[_index + 1];
+
+        // check if it's the same number
+        if (_level === _next_level) {
+          // same numbers are not safe
+          return false;
+        }
+
+        // check if it's increasing and within 3
+        if (increasing) {
+          const confirm_increase = _next_level > _level;
+          if (confirm_increase) {
+            // check to make sure intervals are not more than 3
+            return Math.abs(_next_level - _level) < 4;
+          } else {
+            return false;
+          }
+        }
+
+        // check if it's decreasing and within 3
+        if (decreasing) {
+          const confirm_decrease = _next_level < _level;
+          if (confirm_decrease) {
+            // check to make sure intervals are not more than 3
+            return Math.abs(_next_level - _level) < 4;
+          } else {
+            return false;
+          }
+        }
+
+        return result;
+      },
+      true
+    );
+  }
+
+  // Removes one number at a time and checks to see if the result is a safe report
+  function safety_check(_report: number[]) {
+    // start by assuming it's false, because we've already checked
+    let _result = false;
+    // remove each number one at a time to see if it works
+    _report.forEach(
+      (_value: number, _index: number, _full_report: number[]) => {
+        // if we've found a true (safe) result, continue...
+        if (_result === true) return;
+        // remove the number at the index and try
+        _full_report.splice(_index, 1);
+        if (check_report(_full_report)) {
+          _result = true;
+        }
+      }
+    );
+
+    return _result;
+  }
+
+  // loop through reports and calculate:
+  input.forEach((_report: number[]) => {
+    if (check_report(_report)) {
+      safe_reports.push(_report);
+    } else {
+      if (safety_check(_report)) {
+        safe_reports.push(_report);
+      }
+    }
+  });
+
+  return safe_reports.length;
 }
 
 const puzzle_input = `
